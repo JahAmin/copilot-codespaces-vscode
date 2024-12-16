@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Animais na Fazenda</title>
+    <style>
+        :root {
+            --primary-color: #28a745;
+            --secondary-color: #218838;
+            --background-color: #f4f4f9;
+            --text-color: #333;
+            --white-color: #fff;
+            --border-color: #ccc;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: var(--white-color);
+            box-shadow: 0 4px 8px var(--shadow-color);
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+        input, select {
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px;
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+        th {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+        }
+        .edit-btn, .delete-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .edit-btn {
+            background-color: #ffc107;
+            color: var(--white-color);
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            color: var(--white-color);
+        }
+        #imagePreview {
+            display: none;
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Controle de Animais na Fazenda</h1>
+        <form id="animalForm">
+            <label for="animal-id">ID do Animal:</label>
+            <input type="text" id="animal-id" name="animal-id" readonly>
+
+            <label for="animal-name">Nome do Animal:</label>
+            <input type="text" id="animal-name" name="animal-name">
+
+            <label for="microchip">Microchip:</label>
+            <input type="text" id="microchip" name="microchip">
+
+            <label for="weight">Peso (kg):</label>
+            <input type="number" id="weight" name="weight">
+
+            <label for="birth-date">Data de Nascimento:</label>
+            <input type="date" id="birth-date" name="birth-date">
+
+            <label for="age">Idade:</label>
+            <input type="number" id="age" name="age">
+
+            <label for="vaccines">Vacinas:</label>
+            <div id="vaccines">
+                <label><input type="checkbox" value="Febre aftosa"> Febre aftosa</label>
+                <label><input type="checkbox" value="Brucelose"> Brucelose</label>
+                <label><input type="checkbox" value="Clostridioses"> Clostridioses</label>
+                <label><input type="checkbox" value="Raiva bovina"> Raiva bovina</label>
+                <label><input type="checkbox" value="Leptospirose"> Leptospirose</label>
+                <label><input type="checkbox" value="Paratifo nos bezerros"> Paratifo nos bezerros</label>
+            </div>
+
+            <label for="breed">Raça:</label>
+            <select id="breed" name="breed">
+                <option value="Nelore">Nelore</option>
+                <option value="Gir">Gir</option>
+                <option value="Girholanda">Girholanda</option>
+                <option value="Holandesa">Holandesa</option>
+                <option value="Jersey">Jersey</option>
+            </select>
+
+            <label for="gender">Sexo:</label>
+            <select id="gender" name="gender">
+                <option value="Masculino">Masculino</option>
+                <option value="Feminino">Feminino</option>
+            </select>
+
+            <label for="animal-image">Imagem do Animal:</label>
+            <input type="file" id="animal-image" name="animal-image">
+            <img id="imagePreview" alt="Prévia da Imagem">
+
+            <button type="submit">Adicionar Animal</button>
+            <button type="button" onclick="updateAnimal()">Atualizar Animal</button>
+        </form>
+
+        <table id="animalTable">
+            <thead>
+                <tr>
+                    <th>Imagem</th>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Peso (kg)</th>
+                    <th>Data de Nascimento</th>
+                    <th>Idade</th>
+                    <th>Raça</th>
+                    <th>Sexo</th>
+                    <th>Microchip</th>
+                    <th>Vacinas</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Example row -->
+                <tr>
+                    <td><img src="example.jpg" alt="Imagem do Animal" style="width: 50px; height: 50px;"></td>
+                    <td>001</td>
+                    <td>Animal 1</td>
+                    <td>500</td>
+                    <td>2020-01-01</td>
+                    <td>4</td>
+                    <td>Nelore</td>
+                    <td>Masculino</td>
+                    <td>123456789</td>
+                    <td>Febre aftosa, Brucelose</td>
+                    <td>
+                        <button class="edit-btn" onclick="editAnimal(1)">Editar</button>
+                        <button class="delete-btn" onclick="deleteAnimal(1)">Excluir</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <button onclick="exportToPDF()">Exportar para PDF</button>
+        <button onclick="exportToExcel()">Exportar para Excel</button>
+    </div>
+    <script>
+        let animalIdCounter = 2;
+        let editAnimalId = null;
+
+        document.getElementById('animal-image').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('imagePreview').style.display = 'none';
+            }
+        });
+
+        function getSelectedVaccines() {
+            const checkboxes = document.querySelectorAll('#vaccines input[type="checkbox"]');
+            const selectedVaccines = [];
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    selectedVaccines.push(checkbox.value);
+                }
+            });
+            return selectedVaccines.join(', ');
+        }
+
+        function addAnimalToTable(animalData) {
+            const tableBody = document.getElementById('animalTable').querySelector('tbody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><img src="${animalData.image}" alt="Imagem do Animal" style="width: 50px; height: 50px;"></td>
+                <td>${animalData.id}</td>
+                <td>${animalData.name}</td>
+                <td>${animalData.weight}</td>
+                <td>${animalData.birthDate}</td>
+                <td>${animalData.age}</td
+                <td>${animalData.birthDate}</td>
+                <td>${animalData.age}</td>
+                <td>${animalData.breed}</td>
+                <td>${animalData.gender}</td>
+                <td>${animalData.microchip}</td>
+                <td>${animalData.vaccines}</td>
+                <td>
+                    <button class="edit-btn" onclick="editAnimal(${animalData.id})">Editar</button>
+                    <button class="delete-btn" onclick="deleteAnimal(${animalData.id})">Excluir</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+            saveDataLocally();
+        }
+
+        function editAnimal(animalId) {
+            const animalData = getAnimalDataById(animalId);
+            if (animalData) {
+                document.getElementById('animal-id').value = animalData.id;
+                document.getElementById('animal-name').value = animalData.name;
+                document.getElementById('microchip').value = animalData.microchip;
+                document.getElementById('weight').value = animalData.weight;
+                document.getElementById('birth-date').value = animalData.birthDate;
+                document.getElementById('age').value = animalData.age;
+                document.getElementById('breed').value = animalData.breed;
+                document.getElementById('gender').value = animalData.gender;
+                setSelectedVaccines(animalData.vaccines);
+                document.getElementById('imagePreview').src = animalData.image;
+                document.getElementById('imagePreview').style.display = 'block';
+                editAnimalId = animalId;
+            }
+        }
+
+        function deleteAnimal(animalId) {
+            const tableBody = document.getElementById('animalTable').querySelector('tbody');
+            const rows = tableBody.querySelectorAll('tr');
+            rows.forEach(row => {
+                if (row.querySelector('td:nth-child(2)').textContent == animalId) {
+                    tableBody.removeChild(row);
+                }
+            });
+            saveDataLocally();
+        }
+
+        function getAnimalDataById(animalId) {
+            const rows = document.getElementById('animalTable').querySelector('tbody').querySelectorAll('tr');
+            for (let row of rows) {
+                if (row.querySelector('td:nth-child(2)').textContent == animalId) {
+                    return {
+                        id: row.querySelector('td:nth-child(2)').textContent,
+                        name: row.querySelector('td:nth-child(3)').textContent,
+                        weight: row.querySelector('td:nth-child(4)').textContent,
+                        birthDate: row.querySelector('td:nth-child(5)').textContent,
+                        age: row.querySelector('td:nth-child(6)').textContent,
+                        breed: row.querySelector('td:nth-child(7)').textContent,
+                        gender: row.querySelector('td:nth-child(8)').textContent,
+                        microchip: row.querySelector('td:nth-child(9)').textContent,
+                        vaccines: row.querySelector('td:nth-child(10)').textContent,
+                        image: row.querySelector('td:nth-child(1) img').src
+                    };
+                }
+            }
+            return null;
+        }
+
+        function setSelectedVaccines(vaccines) {
+            const checkboxes = document.querySelectorAll('#vaccines input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = vaccines.includes(checkbox.value);
+            });
+        }
+
+        function clearForm() {
+            document.getElementById('animal-id').value = '';
+            document.getElementById('animal-name').value = '';
+            document.getElementById('microchip').value = '';
+            document.getElementById('weight').value = '';
+            document.getElementById('birth-date').value = '';
+            document.getElementById('age').value = '';
+            document.getElementById('breed').value = '';
+            document.getElementById('gender').value = '';
+            const checkboxes = document.querySelectorAll('#vaccines input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            document.getElementById('animal-image').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            editAnimalId = null;
+        }
+
+        document.getElementById('animalForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const animalData = {
+                id: editAnimalId ? editAnimalId : animalIdCounter++,
+                name: document.getElementById('animal-name').value,
+                microchip: document.getElementById('microchip').value,
+                weight: document.getElementById('weight').value,
+                birthDate: document.getElementById('birth-date').value,
+                age: document.getElementById('age').value,
+                breed: document.getElementById('breed').value,
+                gender: document.getElementById('gender').value,
+                vaccines: getSelectedVaccines(),
+                image: document.getElementById('imagePreview').src
+            };
+
+            if (editAnimalId) {
+                deleteAnimal(editAnimalId);
+                addAnimalToTable(animalData);
+                clearForm();
+            } else {
+                addAnimalToTable(animalData);
+                clearForm();
+            }
+        });
+
+        function saveDataLocally() {
+            const tableBody = document.getElementById('animalTable').querySelector('tbody');
+            const rows = tableBody.querySelectorAll('tr');
+            const animals = [];
+            rows.forEach(row => {
+                const animalData = {
+                    id: row.querySelector('td:nth-child(2)').textContent,
+                    name: row.querySelector('td:nth-child(3)').textContent,
+                    weight: row.querySelector('td:nth-child(4)').textContent,
+                    birthDate: row.querySelector('td:nth-child(5)').textContent,
+                    age: row.querySelector('td:nth-child(6)').textContent,
+                    breed: row.querySelector('td:nth-child(7)').textContent,
+                    gender: row.querySelector('td:nth-child(8)').textContent,
+                    microchip: row.querySelector('td:nth-child(9)').textContent,
+                    vaccines: row.querySelector('td:nth-child(10)').textContent,
+                    image: row.querySelector('td:nth-child(1) img').src
+                };
+                animals.push(animalData);
+            });
+            localStorage.setItem('animals', JSON.stringify(animals));
+        }
+
+        function loadDataFromLocalStorage() {
+            const animals = JSON.parse(localStorage.getItem('animals'));
+            if (animals) {
+                animals.forEach(animal => {
+                    addAnimalToTable(animal);
+                });
+            }
+        }
+
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const table = document.getElementById('animalTable');
+            const rows = Array.from(table.rows);
+            const data = rows.map(row => {
+                const cells = Array.from(row.cells);
+                return cells.map(cell => {
+                    if (cell.querySelector('img')) {
+                        return { content: cell.querySelector('img').src, styles: { cellWidth: 20, cellHeight: 20 } };
+                    }
+                    return cell.textContent;
+                });
+            });
+            doc.autoTable({
+                head: [data[0]],
+                body: data.slice(1),
+                didDrawCell: function (data) {
+                    if (data.column.index === 0 && data.cell.section === 'body') {
+                        doc.addImage(data.cell.raw, 'JPEG', data.cell.x + 2, data.cell.y + 2, 16, 16);
+                    }
+                }
+            });
+            doc.save('animais.pdf');
+        }
+
+        function exportToExcel() {
+            const table = document.getElementById('animalTable');
+            const rows = Array.from(table.rows);
+            let csvContent = '';
+            rows.forEach(row => {
+                const cells = Array.from(row.cells);
+                const rowContent = cells.map(cell => cell.textContent).join(',');
+                csvContent += rowContent + '\n';
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'animais.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        window.onload = loadDataFromLocalStorage;
+    </script>
+</body>
+</html>
